@@ -1,14 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter as Router } from 'react-router-dom'
 
 import CharacterList from './CharacterList'
-import dummyData from './dummy-data'
+import endpoint from './endpoint'
 
 import './styles.scss'
 
 const App = () => {
-  const [characters, setCharacters] = useState(dummyData)
+  const [characters, setCharacters] = useState([])
+
+  useEffect(() => {
+    fetch(endpoint + '/characters')
+      .then(res => res.json())
+      .then(res => {
+        setCharacters(res.characters)
+      })
+      .catch(console.error)
+  }, [])
 
   return (
     <div className='Application'>
