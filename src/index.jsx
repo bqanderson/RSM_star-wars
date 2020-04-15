@@ -9,14 +9,24 @@ import './styles.scss'
 
 const App = () => {
   const [characters, setCharacters] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
+    setLoading(true)
+    setCharacters([])
+    setError(null)
+
     fetch(endpoint + '/characters')
       .then(res => res.json())
       .then(res => {
+        setLoading(false)
         setCharacters(res.characters)
       })
-      .catch(console.error)
+      .catch(err => {
+        setLoading(false)
+        setError(err)
+      })
   }, [])
 
   return (
@@ -26,7 +36,8 @@ const App = () => {
       </header>
       <main>
         <section className='sidebar'>
-          <CharacterList characters={characters} />
+          {loading ? <p>Loading...</p> : <CharacterList characters={characters} />}
+          {error && <p className='eror'>{error.message}</p>}
         </section>
       </main>
     </div>
