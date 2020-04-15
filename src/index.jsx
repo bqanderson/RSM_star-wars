@@ -7,27 +7,34 @@ import endpoint from './endpoint'
 
 import './styles.scss'
 
-const App = () => {
-  const [characters, setCharacters] = useState([])
+const useFetch = url => {
+  const [response, setResponse] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     setLoading(true)
-    setCharacters([])
+    setResponse(null)
     setError(null)
 
-    fetch(endpoint + '/characters')
+    fetch(url)
       .then(res => res.json())
       .then(res => {
         setLoading(false)
-        setCharacters(res.characters)
+        setResponse(res)
       })
       .catch(err => {
         setLoading(false)
         setError(err)
       })
   }, [])
+
+  return [response, loading, error]
+}
+
+const App = () => {
+  const [response, loading, error] = useFetch(endpoint + '/characters')
+  const characters = (response && response.characters) || []
 
   return (
     <div className='Application'>
