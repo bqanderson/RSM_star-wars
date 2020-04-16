@@ -17,16 +17,19 @@ const useFetch = url => {
     setResponse(null)
     setError(null)
 
-    fetch(url)
-      .then(res => res.json())
-      .then(res => {
-        setLoading(false)
-        setResponse(res)
-      })
-      .catch(err => {
-        setLoading(false)
+    const fetchUrl = async () => {
+      try {
+        const res = await fetch(url)
+        const data = await res.json()
+        setResponse(data)
+      } catch (err) {
         setError(err)
-      })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUrl()
   }, [])
 
   return [response, loading, error]
