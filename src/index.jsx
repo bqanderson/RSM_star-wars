@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter as Router } from 'react-router-dom'
 
@@ -7,32 +7,60 @@ import endpoint from './endpoint'
 
 import './styles.scss'
 
+const initialState = {
+  result: null,
+  loading: true,
+  error: null,
+}
+
+const fetchReducer = (state, action) => {
+  switch (action.type) {
+    case 'LOADING':
+      return {
+        result: null,
+        loading: true,
+        error: null,
+      }
+
+    case 'RESPONSE_COMPLETE':
+      return {
+        result: action.payload.response,
+        loading: false,
+        error: null,
+      }
+
+    case 'ERROR':
+      return {
+        result: null,
+        loading: false,
+        error: action.payload.error,
+      }
+
+    default:
+      return state
+  }
+}
+
 const useFetch = url => {
-  const [response, setResponse] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [state, dispatch] = useReducer(fetchReducer, initialState)
 
   useEffect(() => {
-    setLoading(true)
-    setResponse(null)
-    setError(null)
+    dispatch({ type: 'LOADING' })
 
     const fetchUrl = async () => {
       try {
         const res = await fetch(url)
         const data = await res.json()
-        setResponse(data)
-      } catch (err) {
-        setError(err)
-      } finally {
-        setLoading(false)
+        dispatch({ type: 'RESPONSE_COMPLETE', payload: { response: data } })
+      } catch (error) {
+        dispatch({ type: 'ERROR', payload: { error } })
       }
     }
 
     fetchUrl()
   }, [])
 
-  return [response, loading, error]
+  return [state.result, state.loading, state.error]
 }
 
 const App = () => {
