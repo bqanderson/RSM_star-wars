@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from 'react'
+import React, { useReducer } from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter as Router } from 'react-router-dom'
 
@@ -7,31 +7,25 @@ import endpoint from './endpoint'
 
 import './styles.scss'
 
-const initialState = {
-  result: null,
-  loading: true,
-  error: null,
-}
-
-const fetchReducer = (state, action) => {
+const reducer = (state, action) => {
   switch (action.type) {
-    case 'LOADING':
+    case 'FETCHING':
       return {
-        result: null,
+        characters: [],
         loading: true,
         error: null,
       }
 
     case 'RESPONSE_COMPLETE':
       return {
-        result: action.payload.response,
+        characters: action.payload.charcters,
         loading: false,
         error: null,
       }
 
     case 'ERROR':
       return {
-        result: null,
+        characters: [],
         loading: false,
         error: action.payload.error,
       }
@@ -41,31 +35,15 @@ const fetchReducer = (state, action) => {
   }
 }
 
-const useFetch = url => {
-  const [state, dispatch] = useReducer(fetchReducer, initialState)
-
-  useEffect(() => {
-    dispatch({ type: 'LOADING' })
-
-    const fetchUrl = async () => {
-      try {
-        const res = await fetch(url)
-        const data = await res.json()
-        dispatch({ type: 'RESPONSE_COMPLETE', payload: { response: data } })
-      } catch (error) {
-        dispatch({ type: 'ERROR', payload: { error } })
-      }
-    }
-
-    fetchUrl()
-  }, [])
-
-  return [state.result, state.loading, state.error]
+const initialState = {
+  result: null,
+  loading: true,
+  error: null,
 }
 
 const App = () => {
-  const [response, loading, error] = useFetch(endpoint + '/characters')
-  const characters = (response && response.characters) || []
+  const [state, dispatch] = useReducer(reducer, initialState)
+  const { characters } = state
 
   return (
     <div className='Application'>
@@ -74,8 +52,8 @@ const App = () => {
       </header>
       <main>
         <section className='sidebar'>
-          {loading ? <p>Loading...</p> : <CharacterList characters={characters} />}
-          {error && <p className='eror'>{error.message}</p>}
+          <button onClick={() => {}}>Fetch Characters</button>
+          <CharacterList characters={characters} />
         </section>
       </main>
     </div>
