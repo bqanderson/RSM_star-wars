@@ -1,6 +1,7 @@
-import React, { useReducer } from 'react'
+import React, { useReducer, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter as Router } from 'react-router-dom'
+import isFunction from 'lodash/isFunction'
 
 import CharacterList from './CharacterList'
 import endpoint from './endpoint'
@@ -9,7 +10,7 @@ import './styles.scss'
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'FETCHING':
+    case 'LOADING':
       return {
         characters: [],
         loading: true,
@@ -18,7 +19,7 @@ const reducer = (state, action) => {
 
     case 'RESPONSE_COMPLETE':
       return {
-        characters: action.payload.charcters,
+        characters: action.payload.characters,
         loading: false,
         error: null,
       }
@@ -35,15 +36,48 @@ const reducer = (state, action) => {
   }
 }
 
+const fetchCharacters = dispatch => {
+  dispatch({ type: 'LOADING' })
+  fetch(endpoint + '/characters')
+    .then(response => response.json())
+    .then(response =>
+      dispatch({
+        type: 'RESPONSE_COMPLETE',
+        payload: { characters: response.characters },
+      })
+    )
+    .catch(error => dispatch({ type: 'ERROR', payload: { error } }))
+}
+
 const initialState = {
-  result: null,
-  loading: true,
   error: null,
+  loading: false,
+  characters: [],
+}
+
+const useThunkReducer = (reducer, initialState) => {
+  const [state, dispatch] = useReducer(reducer, initialState)
+
+  const enhancedDispatch = action => {
+    console.log(action)
+
+    if (isFunction(action)) {
+      action(dispatch)
+    } else {
+      dispatch(action)
+    }
+  }
+
+  return [state, enhancedDispatch]
 }
 
 const App = () => {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useThunkReducer(reducer, initialState)
   const { characters } = state
+
+  useEffect(() => {
+    dispatch(dispatch => {})
+  }, [dispatch])
 
   return (
     <div className='Application'>
@@ -52,7 +86,7 @@ const App = () => {
       </header>
       <main>
         <section className='sidebar'>
-          <button onClick={() => {}}>Fetch Characters</button>
+          <button onClick={() => dispatch(fetchCharacters)}>Fetch Characters</button>
           <CharacterList characters={characters} />
         </section>
       </main>
